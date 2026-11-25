@@ -672,16 +672,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR cmdline, int cm
 	}
 
 	SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, gConfigPath);
-	WCHAR previousConfig[MAX_PATH];
-	StrCpyW(previousConfig, gConfigPath);
 	PathAppendW(gConfigPath, L"Universal Recorder.ini");
-	if (!PathFileExistsW(gConfigPath) && PathAppendW(previousConfig, L"GravadorASP.ini"))
-	{
-		WCHAR settings[2048];
-		DWORD length = GetPrivateProfileSectionW(L"wcap", settings, _countof(settings), previousConfig);
-		if (length && length < _countof(settings) - 2)
-			WritePrivateProfileSectionW(INI_SECTION, settings, gConfigPath);
-	}
 
 	HR(CoInitializeEx(0, COINIT_APARTMENTTHREADED));
 
