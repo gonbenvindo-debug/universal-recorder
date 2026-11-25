@@ -152,7 +152,7 @@ static void StartRecording(ID3D11Device* Device, VideoSize* size, UINT fpsIndex)
 	int Error = SHCreateDirectoryExW(NULL, gConfig.OutputFolder, NULL);
 	if (Error != ERROR_SUCCESS && Error != ERROR_FILE_EXISTS && Error != ERROR_ALREADY_EXISTS)
 	{
-		ShowNotification(L"Cannot create output folder!", L"Não foi possível iniciar a gravação", NIIF_WARNING);
+		ShowNotification(L"Could not create the recordings folder.", L"Could not start recording", NIIF_WARNING);
 		ScreenCapture_Stop(&gCapture);
 		ID3D11Device_Release(Device);
 		return;
@@ -164,7 +164,7 @@ static void StartRecording(ID3D11Device* Device, VideoSize* size, UINT fpsIndex)
 	StrCpyW(gRecordingPath, gConfig.OutputFolder);
 	if (!PathAppendW(gRecordingPath, Filename) || PathFileExistsW(gRecordingPath))
 	{
-		ShowNotification(L"Escolhe outra pasta para guardar o vídeo.", WCAP_TITLE, NIIF_ERROR);
+		ShowNotification(L"Choose a different folder to save the recording.", WCAP_TITLE, NIIF_ERROR);
 		ScreenCapture_Stop(&gCapture);
 		ID3D11Device_Release(Device);
 		return;
@@ -193,13 +193,13 @@ static void StartRecording(ID3D11Device* Device, VideoSize* size, UINT fpsIndex)
 		BOOL hasMic = SUCCEEDED(Microphone_Start());
 		if (!hasMic && !gHasPlayback)
 		{
-			ShowNotification(L"Não há microfone nem som do sistema disponíveis.", WCAP_TITLE, NIIF_WARNING);
+			ShowNotification(L"No microphone or system audio is available.", WCAP_TITLE, NIIF_WARNING);
 			ScreenCapture_Stop(&gCapture);
 			ID3D11Device_Release(Device);
 			return;
 		}
-		if (!hasMic) ShowNotification(L"Microfone indisponível. A gravar apenas o som do sistema.", WCAP_TITLE, NIIF_WARNING);
-		if (!gHasPlayback) ShowNotification(L"Som do sistema indisponível. A gravar apenas o microfone.", WCAP_TITLE, NIIF_WARNING);
+		if (!hasMic) ShowNotification(L"Microphone unavailable. Recording system audio only.", WCAP_TITLE, NIIF_WARNING);
+		if (!gHasPlayback) ShowNotification(L"System audio unavailable. Recording the microphone only.", WCAP_TITLE, NIIF_WARNING);
 		EncConfig.AudioFormat = gHasPlayback ? gAudio.Format : &silenceFormat;
 		gNextAudioFrame = 0;
 	}
@@ -262,7 +262,7 @@ static void EncodeCapturedAudio(BOOL finish)
 	if (gMic.Source && FAILED(Microphone_Read(MFllMulDiv(now.QuadPart, MF_UNITS_PER_SECOND, gTickFreq.QuadPart, 0))))
 	{
 		Microphone_Stop();
-		ShowNotification(L"O microfone deixou de fornecer áudio.", WCAP_TITLE, NIIF_WARNING);
+		ShowNotification(L"The microphone stopped sending audio.", WCAP_TITLE, NIIF_WARNING);
 	}
 	if (!gEncoder.StartTime) return;
 
@@ -309,7 +309,7 @@ static void StopRecording(void)
 
 	ScreenCapture_Stop(&gCapture);
 	if (FAILED(Encoder_Stop(&gEncoder)))
-		ShowNotification(L"O Windows não conseguiu finalizar o ficheiro MP4.", WCAP_TITLE, NIIF_ERROR);
+		ShowNotification(L"Windows could not finish writing the MP4 file.", WCAP_TITLE, NIIF_ERROR);
 	Microphone_Stop();
 	UpdateTrayTitle(WCAP_TITLE);
 }
@@ -348,7 +348,7 @@ static ID3D11Device* CreateDevice(void)
 	D3D_DRIVER_TYPE Driver = Adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE;
 	if (FAILED(D3D11CreateDevice(Adapter, Driver, NULL, flags, (D3D_FEATURE_LEVEL[]) { D3D_FEATURE_LEVEL_11_0 }, 1, D3D11_SDK_VERSION, &Device, NULL, NULL)))
 	{
-		ShowNotification(L"Cannot to create D3D11 device!", L"Error", NIIF_ERROR);
+		ShowNotification(L"Could not create the Direct3D 11 device.", L"Error", NIIF_ERROR);
 		Device = NULL;
 	}
 	if (Adapter)
@@ -382,7 +382,7 @@ static void CaptureMonitor(HMONITOR Monitor)
 	RecorderMonitor* target = SelectedMonitor(Monitor);
 	VideoSize* size = LoadVideoModes(target) ? SelectedVideoMode(&fpsIndex) : NULL;
 	if (!size) {
-		ShowNotification(L"Não foi possível obter um formato H.264 para este ecrã.", WCAP_TITLE, NIIF_WARNING);
+		ShowNotification(L"No supported H.264 format is available for this monitor.", WCAP_TITLE, NIIF_WARNING);
 		return;
 	}
 	Monitor = target->handle;
@@ -399,7 +399,7 @@ static void CaptureMonitor(HMONITOR Monitor)
 	if (!ScreenCapture_CreateForMonitor(&gCapture, Device, Monitor, NULL))
 	{
 		ID3D11Device_Release(Device);
-		ShowNotification(L"Cannot record selected monitor!", L"Error", NIIF_WARNING);
+		ShowNotification(L"Could not record the selected monitor.", L"Error", NIIF_WARNING);
 		return;
 	}
 
@@ -436,12 +436,12 @@ static INT_PTR CALLBACK ShortcutProc(HWND window, UINT msg, WPARAM wp, LPARAM lp
 	if (!RegisterShortcut(key))
 	{
 		RegisterShortcut(gConfig.ShortcutMonitor);
-		MessageBoxW(window, L"Este atalho está ocupado. Escolhe outra combinação.", WCAP_TITLE, MB_ICONWARNING);
+		MessageBoxW(window, L"That shortcut is already in use. Choose a different key combination.", WCAP_TITLE, MB_ICONWARNING);
 		return TRUE;
 	}
 	gConfig.ShortcutMonitor = key;
 	if (!Config__WriteInt(gConfigPath, L"ShortcutMonitor", key))
-		MessageBoxW(window, L"O atalho só ficará ativo nesta sessão.", WCAP_TITLE, MB_ICONWARNING);
+		MessageBoxW(window, L"This shortcut could not be saved. It will work for this session only.", WCAP_TITLE, MB_ICONWARNING);
 	EndDialog(window, IDOK);
 	return TRUE;
 }
@@ -451,7 +451,7 @@ static void ChooseFolder(HWND window)
 	IFileDialog* dialog;
 	if (FAILED(CoCreateInstance(&CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, &IID_IFileDialog, &dialog))) return;
 	IFileDialog_SetOptions(dialog, FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST);
-	IFileDialog_SetTitle(dialog, L"Pasta das gravações");
+	IFileDialog_SetTitle(dialog, L"Recordings folder");
 	IShellItem* folder;
 	if (SUCCEEDED(SHCreateItemFromParsingName(gConfig.OutputFolder, NULL, &IID_IShellItem, &folder)))
 	{
@@ -466,7 +466,7 @@ static void ChooseFolder(HWND window)
 			if (lstrlenW(path) < MAX_PATH - 32 && WritePrivateProfileStringW(INI_SECTION, L"OutputFolder", path, gConfigPath))
 				StrCpyW(gConfig.OutputFolder, path);
 			else
-				MessageBoxW(window, L"Não foi possível guardar esta pasta.", WCAP_TITLE, MB_ICONWARNING);
+				MessageBoxW(window, L"Could not save the selected folder.", WCAP_TITLE, MB_ICONWARNING);
 			CoTaskMemFree(path);
 		}
 		IShellItem_Release(folder);
@@ -478,7 +478,7 @@ static void UpdateDuration(void)
 {
 	DWORD seconds = gRecording ? (DWORD)((GetTickCount64() - gStarted) / 1000) : gSeconds;
 	WCHAR label[96];
-	StrFormat(label, L"%ls  %02u:%02u:%02u", gRecording ? L"A gravar" : L"Último vídeo",
+	StrFormat(label, L"%ls  %02u:%02u:%02u", gRecording ? L"Recording" : L"Last recording",
 		seconds / 3600, seconds / 60 % 60, seconds % 60);
 	if (gMenu) ModifyMenuW(gMenu, CMD_TIME, MF_BYCOMMAND | MF_GRAYED, CMD_TIME, label);
 	UpdateTrayTitle(label);
@@ -533,14 +533,14 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
 			AppendMenuW(gMenu, MF_GRAYED, CMD_TIME, L"");
 			UpdateDuration();
 		}
-		AppendMenuW(gMenu, MF_STRING, CMD_TOGGLE, gRecording ? L"Parar gravação" : L"Começar a gravar");
+		AppendMenuW(gMenu, MF_STRING, CMD_TOGGLE, gRecording ? L"Stop recording" : L"Start recording");
 		AppendMenuW(gMenu, MF_SEPARATOR, 0, NULL);
 		RefreshMonitors();
 		MonitorMenu(gMenu);
 		VideoMenus(gMenu, SelectedMonitor(gRecording ? gRecordingMonitor : monitor));
-		AppendMenuW(gMenu, MF_STRING, CMD_FOLDER, L"Escolher pasta das gravações…");
-		AppendMenuW(gMenu, MF_STRING, CMD_SHORTCUT, L"Definir atalho de teclado…");
-		AppendMenuW(gMenu, MF_STRING, CMD_QUIT, L"Sair");
+		AppendMenuW(gMenu, MF_STRING, CMD_FOLDER, L"Choose recordings folder...");
+		AppendMenuW(gMenu, MF_STRING, CMD_SHORTCUT, L"Set keyboard shortcut...");
+		AppendMenuW(gMenu, MF_STRING, CMD_QUIT, L"Exit");
 		SetForegroundWindow(window);
 		UINT command = TrackPopupMenu(gMenu, TPM_RETURNCMD | TPM_NONOTIFY | TPM_RIGHTBUTTON,
 			pos.x, pos.y, 0, window, NULL);
@@ -577,7 +577,7 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
 			RecorderMonitor* target = wp == CMD_MONITOR_BASE ? NULL : DSA_GetItemPtr(gMonitors, (int)(wp - CMD_MONITOR_BASE - 1));
 			StrCpyW(gConfig.MonitorPath, target ? target->path : L"");
 			if (!WritePrivateProfileStringW(INI_SECTION, L"Monitor", gConfig.MonitorPath, gConfigPath))
-				ShowNotification(L"Esta escolha só ficará ativa nesta sessão.", WCAP_TITLE, NIIF_WARNING);
+				ShowNotification(L"This setting could not be saved. It will apply to this session only.", WCAP_TITLE, NIIF_WARNING);
 		}
 		else if (wp >= CMD_FPS_BASE && !gRecording && gVideo.monitor)
 		{
@@ -597,7 +597,7 @@ static LRESULT CALLBACK WindowProc(HWND window, UINT msg, WPARAM wp, LPARAM lp)
 				gConfig.VideoMaxFramerate = gFps[index];
 				saved = Config__WriteInt(gConfigPath, L"VideoFPS", gFps[index]);
 			}
-			if (!saved) ShowNotification(L"Esta escolha só ficará ativa nesta sessão.", WCAP_TITLE, NIIF_WARNING);
+			if (!saved) ShowNotification(L"This setting could not be saved. It will apply to this session only.", WCAP_TITLE, NIIF_WARNING);
 		}
 		return 0;
 	}
@@ -649,6 +649,7 @@ static bool OnCaptureFrame(ScreenCapture* Capture, ScreenCaptureFrame* Frame)
 
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR cmdline, int cmdshow)
 {
+	SetProcessPreferredUILanguages(MUI_LANGUAGE_NAME, L"en-US\0", NULL);
 	WNDCLASSEXW WindowClass =
 	{
 		.cbSize = sizeof(WindowClass),
@@ -666,7 +667,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR cmdline, int cm
 
 	if (!ScreenCapture_CanHideMouseCursor())
 	{
-		MessageBoxW(NULL, L"Requer Windows 10 versão 2004 ou posterior.", WCAP_TITLE, MB_ICONEXCLAMATION);
+		MessageBoxW(NULL, L"Universal Recorder requires Windows 10 version 2004 or later.", WCAP_TITLE, MB_ICONEXCLAMATION);
 		ExitProcess(0);
 	}
 
@@ -699,7 +700,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR cmdline, int cm
 	if (!gDot || !SetWindowRgn(gDot, CreateEllipticRgn(0, 0, 14, 14), FALSE) ||
 		!SetWindowDisplayAffinity(gDot, WDA_EXCLUDEFROMCAPTURE))
 	{
-		MessageBoxW(NULL, L"Não foi possível excluir o indicador da captura.", WCAP_TITLE, MB_ICONERROR);
+		MessageBoxW(NULL, L"Could not hide the recording indicator from the video.", WCAP_TITLE, MB_ICONERROR);
 		ExitProcess(1);
 	}
 	INITCOMMONCONTROLSEX controls = { sizeof(controls), ICC_HOTKEY_CLASS };
@@ -726,7 +727,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR cmdline, int cm
 	if (!RegisterShortcut(gConfig.ShortcutMonitor))
 	{
 		MessageBoxW(NULL,
-			L"O atalho está ocupado. Escolhe outro no menu do gravador.",
+			L"The recording shortcut is already in use. Choose another shortcut from the tray menu.",
 			WCAP_TITLE, MB_ICONEXCLAMATION);
 	}
 

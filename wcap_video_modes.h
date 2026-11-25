@@ -95,7 +95,7 @@ static void MonitorMenu(HMENU parent)
 {
 	if (!gMonitors || DSA_GetItemCount(gMonitors) < 2) return;
 	HMENU menu = CreatePopupMenu();
-	AppendMenuW(menu, MF_STRING, CMD_MONITOR_BASE, L"Automático (onde está o ponteiro)");
+	AppendMenuW(menu, MF_STRING, CMD_MONITOR_BASE, L"Automatic (monitor under the pointer)");
 	UINT checked = CMD_MONITOR_BASE;
 	for (int i = 0; i < DSA_GetItemCount(gMonitors); ++i) {
 		RecorderMonitor* item = DSA_GetItemPtr(gMonitors, i);
@@ -283,19 +283,19 @@ static void VideoMenus(HMENU menu, const RecorderMonitor* monitor)
 			if (gFps[i]) StrFormat(text, L"%u FPS", gFps[i]);
 			else {
 				UINT n = MulDiv(gVideo.refresh.Numerator, 100, gVideo.refresh.Denominator);
-				if (n % 100) StrFormat(text, L"%u,%02u FPS (ecrã)", n / 100, n % 100);
-				else StrFormat(text, L"%u FPS (ecrã)", n / 100);
+				if (n % 100) StrFormat(text, L"%u.%02u FPS (display refresh rate)", n / 100, n % 100);
+				else StrFormat(text, L"%u FPS (display refresh rate)", n / 100);
 			}
 			AppendMenuW(fps, i == rate ? MF_CHECKED : MF_STRING, CMD_FPS_BASE + i, text);
 		}
 		for (int i = 0; i < DSA_GetItemCount(gVideo.sizes); ++i) {
 			VideoSize* size = DSA_GetItemPtr(gVideo.sizes, i);
 			if (!(size->supported & (1u << rate))) continue;
-			StrFormat(text, L"%u × %u", size->width, size->height);
+			StrFormat(text, L"%u \u00d7 %u", size->width, size->height);
 			AppendMenuW(sizes, size == selected ? MF_CHECKED : MF_STRING, CMD_SIZE_BASE + i, text);
 		}
 	}
 	UINT flags = MF_POPUP | ((!selected || gRecording) ? MF_GRAYED : 0);
 	AppendMenuW(menu, flags, (UINT_PTR)fps, L"FPS");
-	AppendMenuW(menu, flags, (UINT_PTR)sizes, L"Resolução");
+	AppendMenuW(menu, flags, (UINT_PTR)sizes, L"Resolution");
 }

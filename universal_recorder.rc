@@ -1,11 +1,12 @@
 ﻿#pragma code_page(65001)
 #include <windows.h>
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 1 ICON "idle.ico"
 2 ICON "recording.ico"
 
 1 VERSIONINFO
-FILEVERSION 1,0,0,0
-PRODUCTVERSION 1,0,0,0
+FILEVERSION 1,0,1,0
+PRODUCTVERSION 1,0,1,0
 FILEOS VOS_NT_WINDOWS32
 FILETYPE VFT_APP
 BEGIN
@@ -13,8 +14,8 @@ BEGIN
  BEGIN
   BLOCK "040904B0"
   BEGIN
-   VALUE "FileVersion", "1.0.0.0"
-   VALUE "ProductVersion", "1.0.0.0"
+   VALUE "FileVersion", "1.0.1.0"
+   VALUE "ProductVersion", "1.0.1.0"
    VALUE "FileDescription", "Universal Recorder"
    VALUE "InternalName", "Universal Recorder"
    VALUE "OriginalFilename", "Universal Recorder.exe"
@@ -28,11 +29,11 @@ BEGIN
 END
 3 DIALOGEX 0, 0, 191, 66
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Universal Recorder — Atalho de gravação"
+CAPTION "Universal Recorder - Recording shortcut"
 FONT 9, "Segoe UI"
 BEGIN
- LTEXT "Prime a combinação para começar ou parar.", -1, 7, 6, 178, 10
+ LTEXT "Press a key combination to start and stop recording.", -1, 7, 6, 178, 10
  CONTROL "", 101, "msctls_hotkey32", WS_TABSTOP | WS_BORDER, 7, 21, 176, 14
- DEFPUSHBUTTON "Guardar", IDOK, 76, 45, 51, 14
- PUSHBUTTON "Cancelar", IDCANCEL, 132, 45, 51, 14
+ DEFPUSHBUTTON "Save", IDOK, 76, 45, 51, 14
+ PUSHBUTTON "Cancel", IDCANCEL, 132, 45, 51, 14
 END
